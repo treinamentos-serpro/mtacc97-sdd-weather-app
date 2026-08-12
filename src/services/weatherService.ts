@@ -27,6 +27,7 @@ interface RawGeocodingResponse {
 }
 
 interface RawForecastResponse {
+  timezone?: string;
   current?: {
     time: string;
     temperature_2m?: number;
@@ -186,19 +187,21 @@ function mapForecastDays(raw: RawForecastResponse): ForecastDay[] {
 export function mapForecastResponse(raw: RawForecastResponse): {
   current: CurrentWeather;
   forecast: ForecastDay[];
+  timezone: string;
 } {
   return {
     current: mapCurrentWeather(raw),
     forecast: mapForecastDays(raw),
+    timezone: raw.timezone ?? 'UTC',
   };
 }
 
 export async function getWeather(
   latitude: number,
   longitude: number,
-): Promise<{ current: CurrentWeather; forecast: ForecastDay[] }> {
+): Promise<{ current: CurrentWeather; forecast: ForecastDay[]; timezone: string }> {
   const cacheKey = `weather:${latitude}:${longitude}`;
-  const cached = getCached<{ current: CurrentWeather; forecast: ForecastDay[] }>(cacheKey);
+  const cached = getCached<{ current: CurrentWeather; forecast: ForecastDay[]; timezone: string }>(cacheKey);
   if (cached) return cached;
 
   const raw = await fetchRawForecast(latitude, longitude);

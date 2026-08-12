@@ -24,8 +24,6 @@ function App() {
     geoLoading,
   } = useWeather();
 
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center gap-6 px-4 py-10">
       <h1 className="text-2xl font-semibold">Clima Tempo</h1>
@@ -64,12 +62,12 @@ function App() {
               current={weatherData.current}
               location={weatherData.location}
               units={units}
-              timezone={timezone}
+              timezone={weatherData.timezone}
             />
             <ForecastList
               forecast={weatherData.forecast}
               temperatureUnit={units.temperature}
-              timezone={timezone}
+              timezone={weatherData.timezone}
             />
           </>
         )}

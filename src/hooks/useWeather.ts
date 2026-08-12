@@ -26,6 +26,17 @@ function loadStoredLocation(): LocationSuggestion | null {
   }
 }
 
+/** Localidades vindas de geolocalização (coordenadas exatas do usuário) não devem ser persistidas. */
+function isGeolocationDerived(location: LocationSuggestion): boolean {
+  return location.id === 'geolocation';
+}
+
+function connectionAwareErrorMessage(genericMessage: string): string {
+  return navigator.onLine === false
+    ? 'Sem conexão com a internet. Verifique sua rede e tente novamente.'
+    : genericMessage;
+}
+
 export interface UseWeatherResult {
   searchQuery: string;
   suggestions: LocationSuggestion[];
@@ -65,16 +76,14 @@ export function useWeather(): UseWeatherResult {
     setLoading(true);
     setError(null);
     try {
-      const { current, forecast } = await getWeather(location.latitude, location.longitude);
+      const { current, forecast, timezone } = await getWeather(location.latitude, location.longitude);
       if (requestId !== weatherRequestIdRef.current) return; // resposta obsoleta: ignorar
-      setWeatherData({ location, current, forecast });
+      setWeatherData({ location, current, forecast, timezone });
       setStatus('loaded');
     } catch {
       if (requestId !== weatherRequestIdRef.current) return;
       setError(
-        navigator.onLine === false
-          ? 'Sem conexão com a internet. Verifique sua rede e tente novamente.'
-          : 'Não foi possível carregar o clima agora. Tente novamente em instantes.',
+        connectionAwareErrorMessage('Não foi possível carregar o clima agora. Tente novamente em instantes.'),
       );
       setStatus('error');
     } finally {
@@ -104,9 +113,7 @@ export function useWeather(): UseWeatherResult {
       } catch {
         if (requestId !== searchRequestIdRef.current) return;
         setError(
-          navigator.onLine === false
-            ? 'Sem conexão com a internet. Verifique sua rede e tente novamente.'
-            : 'Não foi possível buscar localidades agora. Tente novamente em instantes.',
+          connectionAwareErrorMessage('Não foi possível buscar localidades agora. Tente novamente em instantes.'),
         );
         setStatus('error');
       }
@@ -118,7 +125,9 @@ export function useWeather(): UseWeatherResult {
       setSelectedLocation(location);
       setSuggestions([]);
       setSearchQuery('');
-      localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
+      if (!isGeolocationDerived(location)) {
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
+      }
       await fetchWeatherFor(location);
     },
     [fetchWeatherFor],

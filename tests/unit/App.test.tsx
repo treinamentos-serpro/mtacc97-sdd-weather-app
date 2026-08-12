@@ -14,6 +14,7 @@ const geocodingResponse = {
 };
 
 const forecastResponse = {
+  timezone: 'America/Sao_Paulo',
   current: { time: '2026-08-12T12:00:00Z', temperature_2m: 22, weather_code: 0 },
   daily: { time: ['2026-08-12'], temperature_2m_max: [25], temperature_2m_min: [18], weather_code: [0] },
 };

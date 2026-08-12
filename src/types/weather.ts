@@ -31,6 +31,7 @@ export interface WeatherData {
   location: LocationSuggestion;
   current: CurrentWeather;
   forecast: ForecastDay[];
+  timezone: string;
 }
 
 export type TemperatureUnit = 'celsius' | 'fahrenheit';

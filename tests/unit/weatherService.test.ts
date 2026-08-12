@@ -104,6 +104,7 @@ describe('searchLocations', () => {
 describe('mapForecastResponse', () => {
   it('maps a complete response', () => {
     const raw = {
+      timezone: 'America/Sao_Paulo',
       current: {
         time: '2026-08-12T12:00:00Z',
         temperature_2m: 25,
@@ -123,12 +124,13 @@ describe('mapForecastResponse', () => {
       },
     };
 
-    const { current, forecast } = mapForecastResponse(raw);
+    const { current, forecast, timezone } = mapForecastResponse(raw);
 
     expect(current.temperature).toBe(25);
     expect(current.condition).toBe('Céu limpo');
     expect(forecast).toHaveLength(2);
     expect(forecast[1].condition).toContain('Chuva');
+    expect(timezone).toBe('America/Sao_Paulo');
   });
 
   it('maps missing fields to null instead of failing', () => {
@@ -139,6 +141,14 @@ describe('mapForecastResponse', () => {
     expect(current.humidity).toBeNull();
     expect(current.uvIndex).toBeNull();
     expect(forecast[0].rainProbability).toBeNull();
+  });
+
+  it('falls back to UTC when the API does not return a timezone', () => {
+    const raw = { current: { time: '2026-08-12T12:00:00Z' }, daily: { time: ['2026-08-12'] } };
+
+    const { timezone } = mapForecastResponse(raw);
+
+    expect(timezone).toBe('UTC');
   });
 });
 
@@ -153,6 +163,7 @@ describe('getWeather (cache)', () => {
   });
 
   const rawResponse = {
+    timezone: 'America/Sao_Paulo',
     current: { time: '2026-08-12T12:00:00Z', temperature_2m: 25, weather_code: 0 },
     daily: { time: ['2026-08-12'], weather_code: [0] },
   };
@@ -173,5 +184,13 @@ describe('getWeather (cache)', () => {
     await getWeather(3, 4);
 
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns the timezone reported by the API for the requested location', async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse(rawResponse));
+
+    const { timezone } = await getWeather(5, 6);
+
+    expect(timezone).toBe('America/Sao_Paulo');
   });
 });

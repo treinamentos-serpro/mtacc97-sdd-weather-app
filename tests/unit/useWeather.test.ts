@@ -14,6 +14,7 @@ const geocodingResponse = {
 };
 
 const forecastResponse = {
+  timezone: 'America/Sao_Paulo',
   current: { time: '2026-08-12T12:00:00Z', temperature_2m: 22, weather_code: 0 },
   daily: { time: ['2026-08-12'], temperature_2m_max: [25], temperature_2m_min: [18], weather_code: [0] },
 };
@@ -92,6 +93,40 @@ describe('useWeather', () => {
 
     expect(result.current.weatherData?.current.temperature).toBe(22);
     expect(result.current.status).toBe('loaded');
+  });
+
+  it('exposes the timezone reported by the API for the selected location (not the browser timezone)', async () => {
+    const { result } = renderHook(() => useWeather());
+
+    await act(async () => {
+      await result.current.selectLocation({
+        id: '1',
+        name: 'São Paulo',
+        region: 'SP',
+        country: 'Brasil',
+        latitude: -23.5,
+        longitude: -46.6,
+      });
+    });
+
+    expect(result.current.weatherData?.timezone).toBe('America/Sao_Paulo');
+  });
+
+  it('does not persist locations derived from geolocation to localStorage', async () => {
+    const { result } = renderHook(() => useWeather());
+
+    await act(async () => {
+      await result.current.selectLocation({
+        id: 'geolocation',
+        name: 'Minha localização',
+        region: '',
+        country: '',
+        latitude: -23.5,
+        longitude: -46.6,
+      });
+    });
+
+    expect(localStorage.getItem('weather-app:last-location')).toBeNull();
   });
 
   it('clears the search query after selecting a location', async () => {
