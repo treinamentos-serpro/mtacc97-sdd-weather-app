@@ -46,6 +46,36 @@ describe('useWeather', () => {
     await waitFor(() => expect(result.current.suggestions).toHaveLength(1));
   });
 
+  it('clears suggestions and returns to idle for an empty search', () => {
+    const { result } = renderHook(() => useWeather());
+
+    act(() => {
+      result.current.searchLocation('');
+    });
+
+    expect(result.current.suggestions).toEqual([]);
+    expect(result.current.status).toBe('idle');
+  });
+
+  it('auto-loads weather for a persisted location on mount (reload)', async () => {
+    localStorage.setItem(
+      'weather-app:last-location',
+      JSON.stringify({
+        id: '1',
+        name: 'São Paulo',
+        region: 'SP',
+        country: 'Brasil',
+        latitude: -23.5,
+        longitude: -46.6,
+      }),
+    );
+
+    const { result } = renderHook(() => useWeather());
+
+    await waitFor(() => expect(result.current.weatherData).not.toBeNull());
+    expect(result.current.weatherData?.location.name).toBe('São Paulo');
+  });
+
   it('selects a location and loads weather data', async () => {
     const { result } = renderHook(() => useWeather());
 

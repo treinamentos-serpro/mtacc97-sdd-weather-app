@@ -48,4 +48,28 @@ describe('App', () => {
 
     await waitFor(() => expect(screen.getByText(/22°C/)).toBeInTheDocument());
   });
+
+  it('shows an empty state when the search returns no results', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ results: [] })));
+    render(<App />);
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Inexistente' } });
+    vi.advanceTimersByTime(300);
+
+    await waitFor(() => expect(screen.getByText(/Nenhum resultado encontrado/)).toBeInTheDocument());
+  });
+
+  it('updates the displayed temperature when units are toggled after data is loaded', async () => {
+    render(<App />);
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'São Paulo' } });
+    vi.advanceTimersByTime(300);
+    await waitFor(() => expect(screen.getByText(/São Paulo/)).toBeInTheDocument());
+    fireEvent.click(screen.getByText(/São Paulo/));
+    await waitFor(() => expect(screen.getByText('22°C')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /Alternar temperatura para Fahrenheit/ }));
+
+    await waitFor(() => expect(screen.getByText('72°F')).toBeInTheDocument());
+  });
 });

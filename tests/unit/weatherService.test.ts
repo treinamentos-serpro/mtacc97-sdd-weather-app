@@ -74,6 +74,31 @@ describe('searchLocations', () => {
     await expect(searchLocations('erro-cliente')).rejects.toThrow();
     expect(fetch).toHaveBeenCalledTimes(1);
   });
+
+  it('aborts and retries when the request times out', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockImplementation(
+      (_url, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener('abort', () =>
+            reject(new DOMException('Aborted', 'AbortError')),
+          );
+        }),
+    );
+
+    const promise = searchLocations('lento');
+    const assertion = expect(promise).rejects.toThrow();
+
+    await vi.advanceTimersByTimeAsync(8000); // timeout da 1ª tentativa
+    await vi.advanceTimersByTimeAsync(300); // backoff
+    await vi.advanceTimersByTimeAsync(8000); // timeout da 2ª tentativa
+    await vi.advanceTimersByTimeAsync(600); // backoff
+    await vi.advanceTimersByTimeAsync(8000); // timeout da 3ª tentativa
+
+    await assertion;
+    expect(fetch).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
+  });
 });
 
 describe('mapForecastResponse', () => {

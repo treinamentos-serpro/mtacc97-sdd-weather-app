@@ -54,8 +54,8 @@ function CurrentWeather({ current, units, timezone }: CurrentWeatherProps) {
         <div>
           <dt className="text-white/70">Vento</dt>
           <dd>
-            {formatValueOrUnavailable(wind !== null ? `${wind} ${units.wind === 'kmh' ? 'km/h' : 'mph'}` : null)}{' '}
-            {current.windDirection ?? ''}
+            {formatValueOrUnavailable(wind !== null ? `${wind} ${units.wind === 'kmh' ? 'km/h' : 'mph'}` : null)}
+            {wind !== null && ` (${formatValueOrUnavailable(current.windDirection)})`}
           </dd>
         </div>
       </dl>
