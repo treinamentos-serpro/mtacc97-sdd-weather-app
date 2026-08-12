@@ -36,11 +36,11 @@ function CurrentWeather({ current, units, timezone }: CurrentWeatherProps) {
       </div>
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm text-white/80 sm:grid-cols-3">
         <div>
-          <dt className="text-white/50">Umidade</dt>
+          <dt className="text-white/70">Umidade</dt>
           <dd>{formatValueOrUnavailable(current.humidity !== null ? `${current.humidity}%` : null)}</dd>
         </div>
         <div>
-          <dt className="text-white/50">Precipitação</dt>
+          <dt className="text-white/70">Precipitação</dt>
           <dd>
             {formatValueOrUnavailable(
               current.precipitation !== null ? `${current.precipitation} mm` : null,
@@ -48,18 +48,18 @@ function CurrentWeather({ current, units, timezone }: CurrentWeatherProps) {
           </dd>
         </div>
         <div>
-          <dt className="text-white/50">Índice UV</dt>
+          <dt className="text-white/70">Índice UV</dt>
           <dd>{formatValueOrUnavailable(current.uvIndex)}</dd>
         </div>
         <div>
-          <dt className="text-white/50">Vento</dt>
+          <dt className="text-white/70">Vento</dt>
           <dd>
             {formatValueOrUnavailable(wind !== null ? `${wind} ${units.wind === 'kmh' ? 'km/h' : 'mph'}` : null)}{' '}
             {current.windDirection ?? ''}
           </dd>
         </div>
       </dl>
-      <p className="mt-4 text-xs text-white/50">
+      <p className="mt-4 text-xs text-white/70">
         Atualizado às {formatUpdatedAt(current.updatedAt, timezone)}
       </p>
     </section>

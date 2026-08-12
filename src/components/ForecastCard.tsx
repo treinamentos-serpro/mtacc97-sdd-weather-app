@@ -20,7 +20,7 @@ function ForecastCard({ day, temperatureUnit, timezone }: ForecastCardProps) {
       <p className="mt-2 font-semibold">
         {max}°{unitLabel} / {min}°{unitLabel}
       </p>
-      <p className="mt-1 text-xs text-white/50">
+      <p className="mt-1 text-xs text-white/70">
         Chuva: {formatValueOrUnavailable(day.rainProbability !== null ? `${day.rainProbability}%` : null)}
       </p>
     </article>
