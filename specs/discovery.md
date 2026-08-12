@@ -88,3 +88,62 @@ Observação: novos requisitos funcionais podem ser adicionados sob demanda (ex.
    - Cobertura: escrever testes sempre que possível; priorizar fluxos E2E críticos: busca/autocomplete, seleção de cidade, alternância de unidades e geolocalização. Cobertura mínima específica será definida no plano de testes.
 
 Observação: as decisões acima aplicam as propostas aceitas; itens que o produto desejar alterar podem ser revisados e versionados no spec.
+
+## Análise de Riscos
+
+1. Falha ou limitação do provedor de API (rate limits, downtime)
+	- Probabilidade: Média
+	- Impacto: Alto (dados indisponíveis para muitos usuários)
+	- Mitigação: implementar retries com backoff exponencial curto; cache local para respostas recentes (TTL 10min); exibir mensagem de erro amigável e instruções de ação. Planejar provedor de fallback em roadmap.
+
+2. Dados meteorológicos incorretos ou incompletos
+	- Probabilidade: Baixa a Média
+	- Impacto: Alto (decisões do usuário baseadas em dados errados)
+	- Mitigação: validar e normalizar respostas; mostrar timestamps e indicação de fonte; exibir "dados indisponíveis" para campos faltantes; fornecer canal para reportar problemas.
+
+3. Problemas de performance / latência elevada
+	- Probabilidade: Média
+	- Impacto: Médio a Alto (má experiência do usuário)
+	- Mitigação: aplicar debounce (300ms), caching TTL 10min, compactar assets, lazy-load de componentes não-críticos, medir e otimizar com ferramentas de performance; estabelecer SLIs e monitoramento.
+
+4. Risco de privacidade (geolocalização)
+	- Probabilidade: Baixa
+	- Impacto: Alto (violação de privacidade percebida)
+	- Mitigação: pedir consentimento explícito antes de usar geolocalização, não persistir coordenadas, documentar políticas de privacidade, permitir revogação fácil.
+
+5. Falha em atender requisitos de acessibilidade (WCAG)
+	- Probabilidade: Média
+	- Impacto: Alto (exclusão de usuários e riscos legais)
+	- Mitigação: incluir auditoria de acessibilidade (axe, Lighthouse), testes de teclado e leitores de tela, revisar contrastes, integrar checks na CI.
+
+6. Incompatibilidades entre navegadores / dispositivos
+	- Probabilidade: Média
+	- Impacto: Médio
+	- Mitigação: usar ferramentas de cross-browser testing, autoprefixer, polyfills sob demanda; testar em Chrome/Edge/Firefox/Safari.
+
+7. Bugs na conversão de unidades
+	- Probabilidade: Baixa
+	- Impacto: Médio
+	- Mitigação: implementar funções puras para conversão com cobertura unitária completa; adicionar testes de integração que validem exibição após alternância de unidades.
+
+8. Erros de fuso horário / datas incorretas
+	- Probabilidade: Média
+	- Impacto: Médio
+	- Mitigação: usar bibliotecas comprovadas para timezone (ex.: date-fns-tz), armazenar e exibir timezone da localidade, adicionar testes que validem limites (mudança de dia, DST).
+
+9. Vulnerabilidades de segurança (XSS, supply-chain)
+	- Probabilidade: Baixa a Média
+	- Impacto: Alto
+	- Mitigação: sanitizar entradas, usar headers de segurança (CSP), manter dependências atualizadas (dependabot), auditar pacotes críticos e executar scanners de segurança.
+
+10. Testes E2E frágeis / cobertura insuficiente
+	 - Probabilidade: Média
+	 - Impacto: Médio
+	 - Mitigação: priorizar cenários críticos em E2E (busca, seleção, unidades, geolocalização), usar seletores estáveis, mockar redes para testes unitários, definir metas de cobertura no plano de testes.
+
+11. Uso excessivo / abuso de consultas (DoS cliente-side)
+	 - Probabilidade: Baixa a Média
+	 - Impacto: Médio
+	 - Mitigação: aplicar throttling no cliente, cache, limites de requisição por sessão e mensagens claras quando limites forem atingidos.
+
+Observação: para cada risco crítico, proponho criar tickets técnicos com tarefas de mitigação e prazos; quer que eu gere um backlog inicial com estimativas para essas medidas?
