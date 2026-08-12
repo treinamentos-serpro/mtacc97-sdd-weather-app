@@ -21,6 +21,7 @@ function App() {
     refreshWeather,
     toggleUnits,
     useGeolocation,
+    geoLoading,
   } = useWeather();
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -40,9 +41,10 @@ function App() {
           <button
             type="button"
             onClick={useGeolocation}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white backdrop-blur-md hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent-500"
+            disabled={geoLoading}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white backdrop-blur-md hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-accent-500 disabled:cursor-wait disabled:opacity-60"
           >
-            Usar minha localização
+            {geoLoading ? 'Localizando…' : 'Usar minha localização'}
           </button>
           <UnitToggle units={units} onToggle={toggleUnits} />
         </div>
@@ -54,11 +56,16 @@ function App() {
           <ErrorState message={error ?? 'Ocorreu um erro inesperado.'} onRetry={() => void refreshWeather()} />
         )}
         {!loading && status !== 'error' && searchQuery && suggestions.length === 0 && !weatherData && (
-          <EmptyState />
+          <EmptyState onClear={() => searchLocation('')} />
         )}
         {!loading && status !== 'error' && weatherData && (
           <>
-            <CurrentWeather current={weatherData.current} units={units} timezone={timezone} />
+            <CurrentWeather
+              current={weatherData.current}
+              location={weatherData.location}
+              units={units}
+              timezone={timezone}
+            />
             <ForecastList
               forecast={weatherData.forecast}
               temperatureUnit={units.temperature}

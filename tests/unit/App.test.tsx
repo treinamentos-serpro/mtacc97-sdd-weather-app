@@ -59,6 +59,19 @@ describe('App', () => {
     await waitFor(() => expect(screen.getByText(/Nenhum resultado encontrado/)).toBeInTheDocument());
   });
 
+  it('clears the search when the empty state clear button is clicked', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ results: [] })));
+    render(<App />);
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Inexistente' } });
+    vi.advanceTimersByTime(300);
+    await waitFor(() => expect(screen.getByText(/Nenhum resultado encontrado/)).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Tentar nova busca'));
+
+    expect(screen.getByRole('combobox')).toHaveValue('');
+  });
+
   it('updates the displayed temperature when units are toggled after data is loaded', async () => {
     render(<App />);
 

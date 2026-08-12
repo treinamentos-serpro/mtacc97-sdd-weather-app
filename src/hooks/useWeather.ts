@@ -40,6 +40,7 @@ export interface UseWeatherResult {
   refreshWeather: () => Promise<void>;
   toggleUnits: (kind: 'temperature' | 'wind') => void;
   useGeolocation: () => void;
+  geoLoading: boolean;
 }
 
 export function useWeather(): UseWeatherResult {
@@ -53,6 +54,7 @@ export function useWeather(): UseWeatherResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<AppStatus>('idle');
+  const [geoLoading, setGeoLoading] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const weatherRequestIdRef = useRef(0);
@@ -115,6 +117,7 @@ export function useWeather(): UseWeatherResult {
     async (location: LocationSuggestion) => {
       setSelectedLocation(location);
       setSuggestions([]);
+      setSearchQuery('');
       localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
       await fetchWeatherFor(location);
     },
@@ -144,6 +147,7 @@ export function useWeather(): UseWeatherResult {
       setStatus('error');
       return;
     }
+    setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const location: LocationSuggestion = {
@@ -154,9 +158,10 @@ export function useWeather(): UseWeatherResult {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-        void selectLocation(location);
+        void selectLocation(location).finally(() => setGeoLoading(false));
       },
       () => {
+        setGeoLoading(false);
         setError('Não foi possível obter sua localização. Você pode continuar buscando manualmente.');
         setStatus('error');
       },
@@ -183,5 +188,6 @@ export function useWeather(): UseWeatherResult {
     refreshWeather,
     toggleUnits,
     useGeolocation: useGeolocationAction,
+    geoLoading,
   };
 }

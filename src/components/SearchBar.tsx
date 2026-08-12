@@ -47,8 +47,18 @@ function SearchBar({ query, suggestions, onQueryChange, onSelect }: SearchBarPro
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
         onKeyDown={handleKeyDown}
-        className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-accent-500"
+        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-4 pr-9 text-white placeholder-white/50 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-accent-500"
       />
+      {query && (
+        <button
+          type="button"
+          onClick={() => onQueryChange('')}
+          aria-label="Limpar busca"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+        >
+          ✕
+        </button>
+      )}
       <span aria-live="polite" className="sr-only">
         {suggestions.length > 0
           ? `${suggestions.length} resultado${suggestions.length > 1 ? 's' : ''} encontrado${suggestions.length > 1 ? 's' : ''}`

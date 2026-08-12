@@ -1,14 +1,15 @@
 import { celsiusToFahrenheit, kmhToMph } from '../lib/temperature';
 import { formatUpdatedAt, formatValueOrUnavailable } from '../lib/format';
-import type { CurrentWeather as CurrentWeatherData, Units } from '../types/weather';
+import type { CurrentWeather as CurrentWeatherData, LocationSuggestion, Units } from '../types/weather';
 
 interface CurrentWeatherProps {
   current: CurrentWeatherData;
+  location: LocationSuggestion;
   units: Units;
   timezone: string;
 }
 
-function CurrentWeather({ current, units, timezone }: CurrentWeatherProps) {
+function CurrentWeather({ current, location, units, timezone }: CurrentWeatherProps) {
   const temperature =
     units.temperature === 'celsius' ? current.temperature : celsiusToFahrenheit(current.temperature);
   const wind =
@@ -17,13 +18,15 @@ function CurrentWeather({ current, units, timezone }: CurrentWeatherProps) {
       : units.wind === 'kmh'
         ? current.windSpeed
         : kmhToMph(current.windSpeed);
+  const locationLabel = [location.name, location.region, location.country].filter(Boolean).join(', ');
 
   return (
     <section
       aria-label="Clima atual"
       className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md shadow-glass"
     >
-      <div className="flex items-center gap-4">
+      <h2 className="text-lg font-medium text-white/90">{locationLabel}</h2>
+      <div className="mt-2 flex items-center gap-4">
         <span aria-hidden="true" className="text-5xl">
           {current.icon}
         </span>

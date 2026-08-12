@@ -37,4 +37,19 @@ describe('SearchBar', () => {
 
     expect(onSelect).toHaveBeenCalledWith(suggestions[0]);
   });
+
+  it('does not show a clear button when the query is empty', () => {
+    render(<SearchBar query="" suggestions={[]} onQueryChange={vi.fn()} onSelect={vi.fn()} />);
+
+    expect(screen.queryByLabelText('Limpar busca')).not.toBeInTheDocument();
+  });
+
+  it('clears the query when the clear button is clicked', () => {
+    const onQueryChange = vi.fn();
+    render(<SearchBar query="São" suggestions={[]} onQueryChange={onQueryChange} onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByLabelText('Limpar busca'));
+
+    expect(onQueryChange).toHaveBeenCalledWith('');
+  });
 });

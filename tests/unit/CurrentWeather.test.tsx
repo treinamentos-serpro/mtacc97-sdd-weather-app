@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import CurrentWeather from '../../src/components/CurrentWeather';
-import type { CurrentWeather as CurrentWeatherData } from '../../src/types/weather';
+import type { CurrentWeather as CurrentWeatherData, LocationSuggestion } from '../../src/types/weather';
 
 const baseCurrent: CurrentWeatherData = {
   temperature: 22,
@@ -15,10 +15,37 @@ const baseCurrent: CurrentWeatherData = {
   updatedAt: '2026-08-12T12:00:00Z',
 };
 
+const baseLocation: LocationSuggestion = {
+  id: '1',
+  name: 'São Paulo',
+  region: 'SP',
+  country: 'Brasil',
+  latitude: -23.5,
+  longitude: -46.6,
+};
+
 describe('CurrentWeather', () => {
+  it('renders the location name so the data source is clear', () => {
+    render(
+      <CurrentWeather
+        current={baseCurrent}
+        location={baseLocation}
+        units={{ temperature: 'celsius', wind: 'kmh' }}
+        timezone="UTC"
+      />,
+    );
+
+    expect(screen.getByText('São Paulo, SP, Brasil')).toBeInTheDocument();
+  });
+
   it('renders all fields when data is complete', () => {
     render(
-      <CurrentWeather current={baseCurrent} units={{ temperature: 'celsius', wind: 'kmh' }} timezone="UTC" />,
+      <CurrentWeather
+        current={baseCurrent}
+        location={baseLocation}
+        units={{ temperature: 'celsius', wind: 'kmh' }}
+        timezone="UTC"
+      />,
     );
 
     expect(screen.getByText('22°C')).toBeInTheDocument();
@@ -35,16 +62,29 @@ describe('CurrentWeather', () => {
       windDirection: null,
     };
 
-    render(<CurrentWeather current={partial} units={{ temperature: 'celsius', wind: 'kmh' }} timezone="UTC" />);
+    render(
+      <CurrentWeather
+        current={partial}
+        location={baseLocation}
+        units={{ temperature: 'celsius', wind: 'kmh' }}
+        timezone="UTC"
+      />,
+    );
 
     expect(screen.getAllByText('dados indisponíveis no momento')).toHaveLength(3);
   });
 
   it('converts temperature when the unit is fahrenheit', () => {
     render(
-      <CurrentWeather current={baseCurrent} units={{ temperature: 'fahrenheit', wind: 'kmh' }} timezone="UTC" />,
+      <CurrentWeather
+        current={baseCurrent}
+        location={baseLocation}
+        units={{ temperature: 'fahrenheit', wind: 'kmh' }}
+        timezone="UTC"
+      />,
     );
 
     expect(screen.getByText('72°F')).toBeInTheDocument();
   });
 });
+

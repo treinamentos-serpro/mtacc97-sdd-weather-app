@@ -94,6 +94,27 @@ describe('useWeather', () => {
     expect(result.current.status).toBe('loaded');
   });
 
+  it('clears the search query after selecting a location', async () => {
+    const { result } = renderHook(() => useWeather());
+
+    act(() => {
+      result.current.searchLocation('São Paulo');
+    });
+
+    await act(async () => {
+      await result.current.selectLocation({
+        id: '1',
+        name: 'São Paulo',
+        region: 'SP',
+        country: 'Brasil',
+        latitude: -23.5,
+        longitude: -46.6,
+      });
+    });
+
+    expect(result.current.searchQuery).toBe('');
+  });
+
   it('sets an error state when the API fails', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => {
       throw new Error('network error');
@@ -148,6 +169,24 @@ describe('useWeather', () => {
     });
 
     await waitFor(() => expect(result.current.weatherData).not.toBeNull());
+    expect(result.current.geoLoading).toBe(false);
+  });
+
+  it('sets geoLoading while waiting for the browser geolocation response', async () => {
+    const getCurrentPosition = vi.fn((success) => {
+      setTimeout(() => success({ coords: { latitude: -23.5, longitude: -46.6 } }), 50);
+    });
+    vi.stubGlobal('navigator', { geolocation: { getCurrentPosition } });
+
+    const { result } = renderHook(() => useWeather());
+
+    act(() => {
+      result.current.useGeolocation();
+    });
+
+    expect(result.current.geoLoading).toBe(true);
+
+    await waitFor(() => expect(result.current.geoLoading).toBe(false));
   });
 
   it('keeps manual search available when geolocation permission is denied', async () => {
