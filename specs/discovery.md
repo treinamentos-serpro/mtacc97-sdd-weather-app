@@ -89,6 +89,25 @@ Observação: novos requisitos funcionais podem ser adicionados sob demanda (ex.
 
 Observação: as decisões acima aplicam as propostas aceitas; itens que o produto desejar alterar podem ser revisados e versionados no spec.
 
+## Personas
+
+- **Usuário Casual (Morador / Passageiro)**
+	- Perfil: usuário que busca rapidamente informações meteorológicas do seu local atual ou de uma cidade próxima.
+	- Objetivos: checar o clima atual e a previsão de até 5 dias para decisões do dia a dia (roupa, deslocamento);
+	- Necessidades: resposta rápida, interface simples, estados claros (loading/erro), persistência de unidade e geolocalização opcional.
+
+- **Viajante / Turista**
+	- Perfil: pessoa planejando viagens ou verificando condições em destinos diferentes.
+	- Objetivos: confirmar condições futuras para atividades e eventos no destino;
+	- Necessidades: busca por cidade confiável (autocomplete com país/estado), fuso horário correto nas datas, timestamps e alternância de unidades.
+
+- **Profissional ao Ar Livre (entregador, operador, agricultor)**
+	- Perfil: usuário que depende de métricas detalhadas (vento, precipitação, índice UV) para planejar trabalho e segurança.
+	- Objetivos: obter dados completos e atualizados para tomar decisões operacionais seguras;
+	- Necessidades: baixa latência, dados completos com indicação quando algo estiver indisponível, persistência da última localidade e precisão nas conversões de unidades.
+
+Observação: use estas personas para priorizar requisitos, desenhar fluxos e definir critérios de aceite nos próximos passos.
+
 ## Análise de Riscos
 
 1. Falha ou limitação do provedor de API (rate limits, downtime)
