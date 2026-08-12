@@ -133,6 +133,7 @@ describe('useWeather', () => {
     });
 
     expect(result.current.weatherData).toBeNull();
+    expect(result.current.error).not.toBeNull();
     expect(typeof result.current.searchLocation).toBe('function');
   });
 });

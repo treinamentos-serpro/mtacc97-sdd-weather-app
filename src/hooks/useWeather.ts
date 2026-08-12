@@ -55,19 +55,28 @@ export function useWeather(): UseWeatherResult {
   const [status, setStatus] = useState<AppStatus>('idle');
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const weatherRequestIdRef = useRef(0);
+  const searchRequestIdRef = useRef(0);
 
   const fetchWeatherFor = useCallback(async (location: LocationSuggestion) => {
+    const requestId = ++weatherRequestIdRef.current;
     setLoading(true);
     setError(null);
     try {
       const { current, forecast } = await getWeather(location.latitude, location.longitude);
+      if (requestId !== weatherRequestIdRef.current) return; // resposta obsoleta: ignorar
       setWeatherData({ location, current, forecast });
       setStatus('loaded');
     } catch {
-      setError('Não foi possível carregar o clima agora. Tente novamente em instantes.');
+      if (requestId !== weatherRequestIdRef.current) return;
+      setError(
+        navigator.onLine === false
+          ? 'Sem conexão com a internet. Verifique sua rede e tente novamente.'
+          : 'Não foi possível carregar o clima agora. Tente novamente em instantes.',
+      );
       setStatus('error');
     } finally {
-      setLoading(false);
+      if (requestId === weatherRequestIdRef.current) setLoading(false);
     }
   }, []);
 
@@ -82,14 +91,21 @@ export function useWeather(): UseWeatherResult {
     }
 
     debounceRef.current = setTimeout(async () => {
+      const requestId = ++searchRequestIdRef.current;
       setStatus('searching');
       setError(null);
       try {
         const results = await searchLocations(query);
+        if (requestId !== searchRequestIdRef.current) return; // resposta obsoleta: ignorar
         setSuggestions(results);
         setStatus(results.length === 0 ? 'idle' : 'searching');
       } catch {
-        setError('Não foi possível buscar localidades agora. Tente novamente em instantes.');
+        if (requestId !== searchRequestIdRef.current) return;
+        setError(
+          navigator.onLine === false
+            ? 'Sem conexão com a internet. Verifique sua rede e tente novamente.'
+            : 'Não foi possível buscar localidades agora. Tente novamente em instantes.',
+        );
         setStatus('error');
       }
     }, SEARCH_DEBOUNCE_MS);
@@ -123,7 +139,11 @@ export function useWeather(): UseWeatherResult {
   }, []);
 
   const useGeolocationAction = useCallback(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setError('Geolocalização não é suportada neste navegador. Use a busca manual.');
+      setStatus('error');
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const location: LocationSuggestion = {
@@ -137,7 +157,8 @@ export function useWeather(): UseWeatherResult {
         void selectLocation(location);
       },
       () => {
-        setError(null);
+        setError('Não foi possível obter sua localização. Você pode continuar buscando manualmente.');
+        setStatus('error');
       },
     );
   }, [selectLocation]);

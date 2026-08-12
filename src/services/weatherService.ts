@@ -7,8 +7,11 @@ const SUGGESTIONS_LIMIT = 5;
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 300;
+const REQUEST_TIMEOUT_MS = 8000;
 
 export class WeatherServiceError extends Error {}
+/** Transient failures (network error, timeout, 5xx) are safe to retry; other errors are not. */
+class TransientWeatherError extends WeatherServiceError {}
 
 interface RawGeocodingResult {
   id: number;
@@ -47,21 +50,30 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Retries transient failures with a short exponential backoff before giving up. */
+/** Retries transient failures (network error, timeout, 5xx) with a short exponential backoff. */
 async function fetchWithRetry(url: string): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) {
-        throw new WeatherServiceError(`Falha na requisição: ${response.status}`);
+        throw response.status >= 500
+          ? new TransientWeatherError(`Servidor indisponível (${response.status}).`)
+          : new WeatherServiceError(`Falha na requisição (${response.status}).`);
       }
       return response;
     } catch (error) {
-      lastError = error;
-      if (attempt < MAX_RETRIES) {
-        await wait(RETRY_BASE_DELAY_MS * 2 ** attempt);
-      }
+      const isTimeout = error instanceof DOMException && error.name === 'AbortError';
+      const isRetryable = isTimeout || error instanceof TransientWeatherError || !(error instanceof WeatherServiceError);
+      lastError = isTimeout ? new TransientWeatherError('Tempo de resposta excedido.') : error;
+
+      if (!isRetryable) throw error;
+      if (attempt === MAX_RETRIES) break;
+      await wait(RETRY_BASE_DELAY_MS * 2 ** attempt);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
   throw lastError instanceof Error

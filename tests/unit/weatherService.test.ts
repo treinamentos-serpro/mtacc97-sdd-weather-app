@@ -60,6 +60,19 @@ describe('searchLocations', () => {
   it('throws after retries are exhausted on network failure', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('network error'));
     await expect(searchLocations('erro')).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(3); // 1 tentativa inicial + 2 retries
+  });
+
+  it('retries on server errors (5xx)', async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({}, false, 503));
+    await expect(searchLocations('erro-servidor')).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry on non-retryable client errors (4xx)', async () => {
+    vi.mocked(fetch).mockResolvedValue(jsonResponse({}, false, 404));
+    await expect(searchLocations('erro-cliente')).rejects.toThrow();
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
 
