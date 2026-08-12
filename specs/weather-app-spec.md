@@ -8,8 +8,8 @@
 
 1. Search and select location
    - The user can search for a location by city, state, or neighborhood.
-   - The application provides autocomplete suggestions via a geocoding API.
-   - The user can select a suggestion to load weather data for that location.
+   - The application provides autocomplete suggestions via a geocoding API, with a maximum of 5 suggestions and a 300ms debounce delay.
+   - The user can select a suggestion to load both current weather and the 5-day forecast for that location.
 
 2. Current weather display
    - After selecting a location, the application displays current weather data including:
@@ -45,12 +45,15 @@
 - As a **Usuário Casual**, I want to search for my city or use my current location so I can see the current weather and plan my day.
 - As a **Viajante / Turista**, I want to search for destinations with autocomplete so I can confirm weather conditions before I travel.
 - As a **Profissional ao Ar Livre**, I want detailed weather metrics and accurate units so I can make safe operational decisions.
+- As a **Usuário de Preferência**, I want the app to remember my preferred units so I don't have to switch them each time I return.
+- As a **Usuário de Confiabilidade**, I want the app to show clear error and loading states so I can understand when data is unavailable or when I should try again.
 
 ## Acceptance Criteria
 
 1. Search and location selection
    - Given the user types a location, the app shows autocomplete suggestions within 300ms of typing pause.
-   - Given a suggestion is selected, the app loads weather data for that location.
+   - Given the user types a location, the app shows a maximum of 5 suggestions.
+   - Given a suggestion is selected, the app loads both current weather and the 5-day forecast for that location.
    - Given the search returns no results, the app displays an empty state.
 
 2. Current weather display
