@@ -52,11 +52,11 @@ test('alterna unidades e persiste após reload', async ({ page }) => {
   await mockWeatherApis(page);
   await page.goto('/');
 
-  await page.getByRole('button', { name: '°C' }).click();
-  await expect(page.getByRole('button', { name: '°F' })).toBeVisible();
+  await page.getByRole('button', { name: 'Alternar temperatura para Fahrenheit' }).click();
+  await expect(page.getByText('°F', { exact: true })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole('button', { name: '°F' })).toBeVisible();
+  await expect(page.getByText('°F', { exact: true })).toBeVisible();
 });
 
 test('exibe estado de erro quando a API falha', async ({ page }) => {
