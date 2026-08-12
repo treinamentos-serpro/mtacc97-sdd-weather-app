@@ -51,61 +51,40 @@ Observação: novos requisitos funcionais podem ser adicionados sob demanda (ex.
 
 ## Ambiguidades, Contradições e Perguntas em Aberto
 
-1. Granularidade da busca
-	- Ambiguidade: "cidade ou localidade" pode incluir bairros, CEPs, endereços completos ou apenas cidades/municípios.
-	- Pergunta: devemos aceitar coordenadas, CEPs e endereços completos além de nomes de cidade? Qual granularidade é necessária para o MVP? 
-    - Resposta: Para o MVP, apenas estado, cidade e bairro, sem CEPs, coordenadas dentre outros.
+1. Granularidade da busca — Decisão
+   - Para o MVP aceitaremos: estado, cidade e bairro. Não aceitaremos CEPs, coordenadas ou endereços completos nesta fase.
 
-2. Autocomplete / Sugestões
-	- Ambiguidade: não há especificação de número máximo de sugestões, comportamento de debounce, nem se os resultados mostrarão país/estado.
-	- Proposta: usar debounce ~300ms e mostrar até 5 sugestões com país/estado. Confirmação requerida.
+2. Autocomplete / Sugestões — Decisão
+   - Comportamento: usar debounce de 300ms e mostrar até 5 sugestões por consulta. Cada sugestão exibirá cidade, estado/região e país.
 
-3. Campos obrigatórios do clima atual
-	- Ambiguidade: lista de campos (UV, precipitação, umidade, vento) não distingue entre obrigatórios e opcionais.
-	- Pergunta: quais campos são obrigatórios para exibir (ex.: temperatura e condição textual) e quais podem ser condicionais conforme disponibilidade do provedor? 
-    - Resposta: Exiba sempre todos os campos. Para o que não for retornado, algum aviso como "dados indisponíveis no momento" deve ser exibido ao usuário.
+3. Campos do clima atual — Decisão
+   - Exibir todos os campos listados (temperatura, umidade, precipitação/probabilidade, índice UV, vento, condição textual/ícone). Se algum campo não for retornado pelo provedor, mostrar "dados indisponíveis no momento" para esse campo.
 
-4. Previsão de 5 dias — inclusão do dia corrente e fuso horário
-	- Ambiguidade: "a partir do dia corrente" — incluir o dia atual como dia 0? Como tratar fuso horário da localidade (usar horário local da cidade ou UTC)?
-	- Proposta: incluir o dia corrente como o primeiro dia e apresentar datas no fuso local da cidade; confirmar se precisamos de breakdown horário. 
+4. Previsão de 5 dias — Decisão
+   - Incluir o dia corrente como o primeiro dia da previsão e apresentar datas no fuso horário local da cidade. Breakdown horário não será implementado no MVP (poderá ser avaliado depois).
 
-5. Alternância de unidades
-	- Ambiguidade: escopo da persistência (localStorage apenas no device? sincronização por conta de usuário?) e comportamento padrão.
-	- Pergunta: persistência local é suficiente ou haverá autenticação/centralização de preferências? Definir unidade padrão (sugestão: Celsius/km·h).
-    - Resposta: persistência local e padrão como Celsius e Km/h.
+5. Alternância de unidades — Decisão
+   - Persistência: `localStorage` local ao dispositivo. Valores padrão: Celsius e km/h.
 
-6. Responsividade e Acessibilidade
-	- Ambiguidade: não foi especificado um nível WCAG alvo (ex.: 2.1 AA).
-	- Pergunta: devemos seguir WCAG 2.1 AA como requisito mínimo? Recomenda-se sim para o MVP.
+6. Responsividade e Acessibilidade — Decisão
+   - Seguir WCAG 2.1 AA como requisito mínimo para o MVP.
 
-7. Geolocalização
-	- Ambiguidade: comportamento quando o usuário nega permissão e política de retenção das coordenadas.
-	- Proposta: se negada, apresentar a caixa de busca com sugestão para permitir geolocalização mais tarde; não armazenar coordenadas precisas sem consentimento explícito.
+7. Geolocalização — Decisão
+   - Se o usuário negar permissão, mostrar a caixa de busca e um pequeno auxílio para ativar geolocalização depois; não armazenar coordenadas precisas sem consentimento explícito.
 
-8. Caching e TTL
-	- Ambiguidade: "caching curto" não tem valor definido.
-	- Proposta: TTL padrão de 10 minutos para dados de previsão por coordenada+unidade; confirmar se esse valor é aceitável.
+8. Caching e TTL — Decisão
+   - TTL padrão: 10 minutos para dados de previsão por (coordenada + unidade). Cache deve ser invalidado quando a unidade ou local mudar.
 
-9. Provedores de API e fallback
-	- Ambiguidade: menciona Open-Meteo, mas não define comportamento em caso de falha ou limites de rate.
-	- Pergunta: haverá um provedor de fallback ou mostraremos uma mensagem de erro? Definir política de retry/backoff.
-    - Resposta: Para o MVP, mostrar mensagem de erro.
+9. Provedores de API e fallback — Decisão
+   - Para o MVP não haverá provedor de fallback; em caso de falha a aplicação exibirá uma mensagem de erro amigável ao usuário. Implementar retries simples com backoff exponencial curto antes de exibir o erro.
 
-10. Privacidade e retenção de dados
-	- Ambiguidade: política de retenção para histórico de buscas e geolocalização não definida.
-	- Pergunta: qual é o período aceitável para reter histórico local (sugestão: apagamento automático após 30 dias ou manter somente última busca)?
-    - Resposta: reter histórico de busca, mas nunca a geolocalização do usuário.
+10. Privacidade e retenção de dados — Decisão
+   - Reter histórico de buscas localmente (ex.: últimas N buscas), mas nunca armazenar a geolocalização do usuário. Políticas de retenção mais estritas podem ser definidas posteriormente.
 
-11. Metas de desempenho e métricas
-	- Ambiguidade: metas (ex.: respostas em cache <1s; requisições novas <3s) carecem de contexto de medição.
-	- Pergunta: em qual ambiente/condições essas metas devem ser validadas (rede móvel 4G, desktop com Wi‑Fi, median latency)?
-    - Resposta: no ambiente de mais facilidade para teste.
+11. Metas de desempenho e métricas — Decisão
+   - Metas (para validação): respostas em cache < 1s; requisições novas < 3s. Validar essas metas no ambiente de teste mais conveniente (ex.: rede de desenvolvimento/wi‑fi local) e documentar o ambiente de medição.
 
-12. Testabilidade
-	- Ambiguidade: cobertura mínima de testes (unit/E2E) não especificada.
-	- Pergunta: qual percentual mínimo de cobertura e quais fluxos E2E são críticos (busca, seleção, alternância de unidades, geolocalização)?
-    - Resposta: cobrir todo o código sempre que possível. Para o MVP, a lista dada como exemplo na pergunta pode servir.
+12. Testabilidade — Decisão
+   - Cobertura: escrever testes sempre que possível; priorizar fluxos E2E críticos: busca/autocomplete, seleção de cidade, alternância de unidades e geolocalização. Cobertura mínima específica será definida no plano de testes.
 
-Observação: para remover ambiguidades rapidamente, posso aplicar decisões razoáveis (ex.: debounce 300ms, 7 sugestões, TTL 10min, WCAG 2.1 AA) e anotar essas escolhas no spec — deseja que eu tome essas decisões por padrão ou que deixe as perguntas abertas para você responder?
-
-Observação: novos requisitos funcionais podem ser adicionados sob demanda (ex.: favoritos, notificações push, histórico de buscas, modo offline). Indique as funcionalidades desejadas para que sejam formalizadas e priorizadas.
+Observação: as decisões acima aplicam as propostas aceitas; itens que o produto desejar alterar podem ser revisados e versionados no spec.
